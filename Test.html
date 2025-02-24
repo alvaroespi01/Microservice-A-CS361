@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Data Entry Table</h2>
+    
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Country</th>
+                <th>Occupation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="name1"></td>
+                <td><input type="text" id="age1"></td>
+                <td><input type="text" id="country1"></td>
+                <td><input type="text" id="occupation1"></td>
+            </tr>
+            <tr>
+                <td><input type="text" id="name2"></td>
+                <td><input type="text" id="age2"></td>
+                <td><input type="text" id="country2"></td>
+                <td><input type="text" id="occupation2"></td>
+            </tr>
+            <tr>
+                <td><input type="text" id="name3"></td>
+                <td><input type="text" id="age3"></td>
+                <td><input type="text" id="country3"></td>
+                <td><input type="text" id="occupation3"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <button onclick="handleExport()">Export to CSV</button>
+
+    <script>
+        function collectTableData() {
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            const data = [];
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td input');  
+    
+                const rowData = {
+                    name: cells[0]?.value || "", 
+                    age: cells[1]?.value || "", 
+                    country: cells[2]?.value || "",  
+                    occupation: cells[3]?.value || ""  
+                };
+                
+                data.push(rowData);
+            });
+            return data;
+        }
+    
+        const handleExport = async () => {
+            const data = collectTableData();
+            if (data.length === 0) return alert("No data to export!");
+
+            try {
+                const response = await fetch("http://localhost:3000/convert_json_to_csv", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) throw new Error("Failed to export");
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "data.csv";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error("Export failed:", error);
+            }
+        };
+    </script>
+
+</body>
+</html>
